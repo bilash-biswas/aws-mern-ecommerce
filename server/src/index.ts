@@ -6,6 +6,9 @@ import productRoutes from './routes/products';
 import userRouters from './routes/users';
 import orderRoutes from './routes/orders';
 import adminRoutes from './routes/admin';
+import newsletterRoutes from './routes/newsletter';
+import favoriteRoutes from './routes/favorites'; 
+import cartRoutes from './routes/cart';// Add this
 
 
 dotenv.config();
@@ -15,7 +18,11 @@ const PORT = process.env.PORT || 3000;
 
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',
+    'http://10.0.2.2:3000',
+    'http://192.168.10.235:3000',
+  ],
   credentials: true,
 }));
 app.use(express.json());
@@ -35,6 +42,9 @@ app.use('/api/products', productRoutes);
 app.use('/api/users', userRouters);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/favorites', favoriteRoutes);
+app.use('/api/cart', cartRoutes);
 
 
 

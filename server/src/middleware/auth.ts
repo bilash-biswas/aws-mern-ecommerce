@@ -23,6 +23,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     const user = await User.findById(decoded.userId).select('-password');
     
     if (!user) {
+      console.log('User not found');
       return res.status(401).json({ message: 'Token is not valid' });
     }
 

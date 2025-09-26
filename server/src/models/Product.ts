@@ -19,8 +19,10 @@ export interface IProduct extends Document {
   image: string;
   category: string;
   stock: number;
+  totalSell: number;
   rating: number;
   numReviews: number;
+  discount?: number;
   views: number;
   reviews: IReview[];
   createdAt: Date;
@@ -44,8 +46,10 @@ const productSchema: Schema = new Schema({
   price: { type: Number, required: true },
   image: { type: String, required: true },
   category: { type: String, required: true },
-  stock: { type: Number, required: true, default: 0 },
+  stock: { type: Number, required: true, default: 0, min: 0 },
+  totalSell: { type: Number, required: true, default: 0 },
   rating: { type: Number, required: true, default: 0 },
+  discount: { type: Number, default: 0 },
   numReviews: { type: Number, required: true, default: 0 },
   views: { type: Number, required: true, default: 0 },
   reviews: [reviewSchema]

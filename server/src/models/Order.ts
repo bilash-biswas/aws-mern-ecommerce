@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 
-interface IOrderItem {
+export interface IOrderItem {
   name: string;
   quantity: number;
   image: string;
@@ -35,6 +35,8 @@ export interface IOrder extends Document {
   totalPrice: number;
   isPaid: boolean;
   paidAt?: Date;
+  isShipped: boolean;
+  shippedAt?: Date;
   isDelivered: boolean;
   deliveredAt?: Date;
   createdAt: Date;
@@ -71,6 +73,8 @@ const orderSchema: Schema = new Schema({
   totalPrice: { type: Number, required: true, default: 0.0 },
   isPaid: { type: Boolean, required: true, default: false },
   paidAt: { type: Date },
+  isShipped: { type: Boolean, required: true, default: false }, 
+  shippedAt: { type: Date }, 
   isDelivered: { type: Boolean, required: true, default: false },
   deliveredAt: { type: Date },
 }, {

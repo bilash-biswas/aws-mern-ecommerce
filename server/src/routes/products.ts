@@ -79,6 +79,9 @@ router.get('/', async (req, res) => {
         case 'oldest':
           sortOption = { createdAt: 1 };
           break;
+        case 'views': 
+          sortOption = { views: -1 };
+          break;
         case 'name-asc':
           sortOption = { name: 1 };
           break;
@@ -110,16 +113,18 @@ router.get('/', async (req, res) => {
 });
 
 
-// In your products route - update the single product endpoint
+// Get single product - Alternative approach
 router.get('/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
-      .populate('reviews.user', 'name email'); // Add population here
+      .populate('reviews.user', 'name email');
 
     if (product) {
-      // Increment view count
-      product.views = (product.views || 0) + 1;
-      await product.save();
+      // Update view count separately
+      await Product.findByIdAndUpdate(
+        req.params.id,
+        { $inc: { views: 1 } }
+      );
       
       res.json(product);
     } else {
@@ -322,41 +327,50 @@ router.get('/top/rated', async (req, res) => {
   }
 });
 
-// Get product categories with counts
-router.get('/categories', async (req, res) => {
+// Get top rated products
+router.get('/all/categories', async (req, res) => {
   try {
-    const categories = await Product.aggregate([
-      { $group: { _id: '$category', count: { $sum: 1 } } },
-      { $sort: { count: -1 } }
-    ]);
-    
-    res.json(categories.map(cat => ({
-      name: cat._id,
-      count: cat.count,
-      image: `/images/${cat._id.toLowerCase()}.jpg`
-    })));
+    const categories = await Product.distinct('category');
+    res.json(categories);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
   }
 });
 
-// Get featured products (high rating + many reviews)
-router.get('/featured', async (req, res) => {
+// In your products route - fix the featured endpoint
+router.get('/featured/product', async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit as string) || 8;
-    const minRating = parseFloat(req.query.minRating as string) || 4.5;
-    const minReviews = parseInt(req.query.minReviews as string) || 10;
+    console.log('Fetching featured products...');
     
-    const products = await Product.find({
+    const limit = parseInt(req.query.limit as string) || 8;
+    const minRating = parseFloat(req.query.minRating as string) || 4.0; // Lowered threshold
+    const minReviews = parseInt(req.query.minReviews as string) || 5;   // Lowered threshold
+
+    // If no products meet the criteria, fall back to most viewed products
+    let products = await Product.find({
       rating: { $gte: minRating },
       numReviews: { $gte: minReviews }
     })
     .sort({ rating: -1, numReviews: -1 })
     .limit(limit);
+
+    // Fallback if no products meet the criteria
+    if (products.length === 0) {
+      console.log('No highly rated products found, falling back to most viewed');
+      products = await Product.find({})
+        .sort({ views: -1, createdAt: -1 })
+        .limit(limit);
+    }
+
+    console.log(`Found ${products.length} featured products`);
     
-    res.json({ products });
+    res.json(products);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
+    console.error('Error in featured endpoint:', error);
+    res.status(500).json({ 
+      message: 'Server Error 1222',
+      error: error
+    });
   }
 });
 
@@ -365,8 +379,8 @@ router.get('/most/viewed', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 8;
     
-    const products = await Product.find({ views: { $gt: 0 } })
-      .sort({ views: -1 })
+    const products = await Product.find({ numReviews: { $gt: 0 } })
+      .sort({ numReviews: -1 })
       .limit(limit);
     
     res.json(products);
