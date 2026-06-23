@@ -28,5 +28,20 @@ jobs:
             # Fetch latest changes
             git pull origin main
             
-            # Rebuild and restart containers
-            docker compose up -d --build
+            # Stop existing containers to release image locks
+            docker compose down
+            
+            # Remove old images and caches to maximize disk space
+            docker system prune -a -f
+            
+            # Build Express server
+            docker compose build server
+            
+            # Clean builder cache before heavy Next.js build
+            docker builder prune -f
+            
+            # Build Next.js client
+            docker compose build client
+            
+            # Start containers
+            docker compose up -d
