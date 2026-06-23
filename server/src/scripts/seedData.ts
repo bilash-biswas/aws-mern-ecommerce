@@ -274,7 +274,7 @@ const generateReviews = (productId: mongoose.Types.ObjectId, count: number) => {
   return reviews;
 };
 
-const seedDatabase = async () => {
+const seedDatabase = async (count: number) => {
   try {
     // Connect to MongoDB
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/mern_ecommerce';
@@ -286,7 +286,7 @@ const seedDatabase = async () => {
     console.log('Cleared existing products');
     
     // Generate sample products
-    const sampleProducts = generateSampleProducts(1000000);
+    const sampleProducts = generateSampleProducts(count);
     
     // Insert new products in batches to avoid memory issues
     const batchSize = 100;
@@ -352,4 +352,4 @@ if (isNaN(productCount) || productCount <= 0) {
 }
 
 console.log(`Generating ${productCount} realistic sample products...`);
-seedDatabase();
+seedDatabase(productCount);
