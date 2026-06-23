@@ -102,7 +102,7 @@ export default function ProductPage() {
       <div className="min-h-screen flex flex-col bg-background text-foreground">
         <Header />
         <main className="container mx-auto px-4 py-16 flex-grow flex justify-center items-center">
-          <Loader />
+          <Loader variant="detail" />
         </main>
         <Footer />
         <Toaster />

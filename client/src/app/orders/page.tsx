@@ -37,7 +37,7 @@ export default function OrdersPage() {
               </Link>
             </div>
 
-            {loading && <Loader />}
+            {loading && <Loader variant="table" />}
             {error && <Message variant="error">{error}</Message>}
 
             {!loading && !error && orders.length === 0 && (

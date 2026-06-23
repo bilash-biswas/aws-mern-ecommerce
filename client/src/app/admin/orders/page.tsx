@@ -88,8 +88,10 @@ export default function AdminOrdersPage() {
     return (
       <div className="min-h-screen flex flex-col bg-background text-foreground animate-fadeIn">
         <Header />
-        <main className="container mx-auto px-4 py-8 flex-grow flex justify-center items-center">
-          <Loader />
+        <main className="container mx-auto px-4 py-8 flex-grow">
+          <div className="max-w-6xl mx-auto">
+            <Loader variant="table" />
+          </div>
         </main>
         <Footer />
         <Toaster />
