@@ -3,11 +3,13 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import { authenticate } from '../middleware/auth';
+import { validateBody } from '../middleware/validate';
+import { registerSchema, loginSchema, profileUpdateSchema } from '../validation/userSchema';
 
 const router = express.Router();
 
 // Register new user
-router.post('/register', async (req, res) => {
+router.post('/register', validateBody(registerSchema), async (req, res) => {
   try {
     const { name, email, password, isAdmin = false } = req.body;
 
@@ -47,7 +49,7 @@ router.post('/register', async (req, res) => {
 });
 
 // Login user
-router.post('/login', async (req, res) => {
+router.post('/login', validateBody(loginSchema), async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -93,7 +95,7 @@ router.get('/profile', authenticate, async (req, res) => {
 });
 
 // Update user profile
-router.put('/profile', authenticate, async (req, res) => {
+router.put('/profile', authenticate, validateBody(profileUpdateSchema), async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     

@@ -2,20 +2,26 @@ import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import productRoutes from './routes/products';
 import userRouters from './routes/users';
 import orderRoutes from './routes/orders';
 import adminRoutes from './routes/admin';
 import newsletterRoutes from './routes/newsletter';
 import favoriteRoutes from './routes/favorites'; 
-import cartRoutes from './routes/cart';// Add this
-
+import cartRoutes from './routes/cart';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust reverse proxy (Docker, Next.js client, etc.) for accurate client IP rate limiting
+app.set('trust proxy', 1);
+
+// Global Security Middleware
+app.use(helmet());
 
 app.use(cors({
   origin: [
@@ -27,6 +33,20 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended : true }));
+
+// Brute-force rate limiting for auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 100, // Limit each IP to 100 requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: 'Too many authentication attempts from this IP. Please try again after 15 minutes.',
+  },
+});
+
+app.use('/api/users/login', authLimiter);
+app.use('/api/users/register', authLimiter);
 
 
 
