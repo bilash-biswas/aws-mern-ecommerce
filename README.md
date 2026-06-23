@@ -10,8 +10,9 @@ A production-grade, full-stack e-commerce ecosystem consisting of a Next.js 15 w
 * **Framework:** Next.js 15.5 (App Router) & React 19
 * **State Management:** Redux Toolkit (Slices for Auth, Cart, and Orders)
 * **Styling:** TailwindCSS v4 with `@theme` configurations mapping premium dark design tokens
-* **Visual Highlights:** Glassmorphic card overlays, backdrop blurs, responsive grids, hover transitions, and dark UI inputs
+* **Visual Highlights:** Glassmorphic card overlays, backdrop blurs, responsive grids, hover transitions, dark UI inputs, custom CSS shimmer skeleton loaders, and interactive password visibility toggles
 * **SEO & Semantics:** HTML5 semantic tags, structured layout metadata, single-h1 hierarchy, and unique elements test IDs
+* **Deployment Optimization:** Standalone Next.js build output configured to minimize Docker container disk space on EC2 production hosts
 
 ### ⚙️ Backend Server (`server`)
 * **Environment:** Node.js, Express.js (TypeScript)
@@ -194,3 +195,26 @@ The API utilizes a strict route-level middleware to sanitize inputs before datab
 }
 ```
 All API traffic is protected by `helmet` security configurations, and authentication routes are throttled to 100 requests per 15 minutes.
+
+---
+
+## ☁️ AWS & CI/CD Deployment
+
+The application is deployed on an **AWS EC2** instance, utilizing a fully automated **GitHub Actions** CI/CD pipeline.
+
+### 🌐 AWS Infrastructure & Host Configuration
+* **Instance Hosting:** Deployed on an **Ubuntu Linux EC2 instance** using Docker Compose to orchestrate isolated containers for the web client, API server, and MongoDB database.
+* **Database Stability:** Configured with a MongoDB LTS version (`mongo:7.0`) to avoid TCMalloc segmentation fault crashes on modern host kernels.
+* **Host Nginx Reverse Proxy:** Traffic on ports `80` (HTTP) and `443` (HTTPS) is handled on the host by **Nginx**, which reverse-proxies requests internally to the active container ports (Port `3000` for Next.js, Port `5000` for Express API).
+
+### 🚀 CI/CD Pipeline Configuration
+An automated GitHub Actions workflow is declared under [.github/workflows/deploy.yml](file:///e:/Backend/mern-ecommerce/.github/workflows/deploy.yml) which triggers on every commit push to the `main` branch.
+
+#### **Pipeline Operations:**
+1. **GitHub Runner Connection:** Instantiates connection to the AWS EC2 instance via SSH keys using `appleboy/ssh-action@v1.0.3`.
+2. **Repository Synchronization:** Pulls the latest commits from the main branch directly on the host machine.
+3. **Resource & Disk Management:** 
+   - Executes `docker compose down` to release resource locks.
+   - Runs `docker system prune -a -f` and `docker builder prune -f` before builds to clean up builder cache and image storage, preventing `ENOSPC` (Out of Disk Space) crashes on the micro-instance host.
+4. **Rebuilding Services:** Performs serial compilations of the Express.js server and Next.js client standalone builds.
+5. **Continuous Service:** Restarts the container orchestrations in detached mode (`docker compose up -d`) to complete the deployment pipeline.
